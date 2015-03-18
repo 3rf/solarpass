@@ -66,11 +66,12 @@ func setTermios(src *syscall.Termios) error {
 func tty_hidden() ([]byte, error) {
 	newState := orig_termios
 	newState.Lflag &^= syscall.ECHO
-	newState.Lflag |= syscall.ICANON | syscall.ISIG
-	newState.Iflag |= syscall.ICRNL
+	//newState.Lflag |= syscall.ICANON | syscall.ISIG
+	//newState.Iflag |= syscall.ICRNL
 	if err := setTermios(&newState); err != nil {
 		return nil, err
 	}
+	defer setTermios(&orig_termios)
 
 	var buf [16]byte
 	var ret []byte
@@ -97,48 +98,6 @@ func tty_hidden() ([]byte, error) {
 	return ret, nil
 }
 
-func screenio() (err error) {
-	var (
-		bytesread     int
-		c_in, c_out   [1]byte
-		eightbitchars [256]byte
-	)
-
-	for i := range eightbitchars {
-		eightbitchars[i] = byte(i)
-	}
-
-	for {
-		bytesread, err = syscall.Read(ttyfd, c_in[0:])
-		if bytesread < 0 {
-			return fmt.Errorf("read error")
-		}
-
-		if bytesread == 0 {
-			c_out[0] = 'T'
-			_, _ = syscall.Write(ttyfd, c_out[0:])
-		} else {
-			switch c_in[0] {
-			case 'q':
-				return nil
-			case 'z':
-				_, err = syscall.Write(ttyfd, []byte{'Z'})
-				if err != nil {
-					return err
-				}
-			default:
-				c_out[0] = '*'
-				_, err = syscall.Write(ttyfd, c_out[0:])
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
 func main() {
 	var (
 		err error
@@ -149,7 +108,6 @@ func main() {
 		return
 	}
 	fmt.Println("GOT TERMIOS!")
-	defer setTermios(&orig_termios)
 
 	fmt.Printf("%#v\n\n", orig_termios)
 
@@ -161,7 +119,7 @@ func main() {
 		return
 	}
 
-	fmt.Println("GOT:", string(read))
+	fmt.Println("\nGOT:", string(read))
 
 	return
 }
