@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"bufio"
+	//	"bufio"
 	"fmt"
 	"os"
 	"syscall"
@@ -103,7 +103,6 @@ func screenio() (err error) {
 		bytesread     int
 		errno         error
 		c_in, c_out   [1]byte
-		up            []byte = []byte("\033[A")
 		eightbitchars [256]byte
 	)
 
@@ -112,19 +111,16 @@ func screenio() (err error) {
 	}
 
 	for {
-		bytesread, errno = syscall.Read(ttyfd, c_in[0:])
-		if err = os.NewSyscallError("SYS_READ", fmt.Errorf("%v", errno)); err != nil {
-			return
-		} else if bytesread < 0 {
+		bytesread, err = syscall.Read(ttyfd, c_in[0:])
+		if bytesread < 0 {
 			return fmt.Errorf("read error")
 		}
+
+		fmt.Println("GOTCHAR", c_in)
 
 		if bytesread == 0 {
 			c_out[0] = 'T'
 			_, errno = syscall.Write(ttyfd, c_out[0:])
-			if err = os.NewSyscallError("SYS_WRITE", fmt.Errorf("%v", errno)); err != nil {
-				return
-			}
 		} else {
 			switch c_in[0] {
 			case 'q':
