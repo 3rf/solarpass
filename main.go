@@ -86,9 +86,9 @@ func setTermios(src *syscall.Termios) error {
 
 func tty_hidden() error {
 	newState := orig_termios
-	newState.Iflag &^= syscall.ISTRIP | syscall.INLCR | syscall.ICRNL | syscall.IGNCR | syscall.IXON | syscall.IXOFF
-	newState.Lflag &^= syscall.ECHO | syscall.ICANON | syscall.ISIG
-
+	newState.Lflag &^= syscall.ECHO
+	newState.Lflag |= syscall.ICANON | syscall.ISIG
+	newState.Iflag |= syscall.ICRNL
 	if err := setTermios(&newState); err != nil {
 		return err
 	}
