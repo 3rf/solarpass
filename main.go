@@ -120,7 +120,7 @@ func screenio() (err error) {
 
 		if bytesread == 0 {
 			c_out[0] = 'T'
-			_, errno = syscall.Write(ttyfd, c_out[0:])
+			_, _ = syscall.Write(ttyfd, c_out[0:])
 		} else {
 			switch c_in[0] {
 			case 'q':
