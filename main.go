@@ -84,14 +84,10 @@ func setTermios(src *syscall.Termios) error {
 	return nil
 }
 
-func tty_raw() error {
+func tty_hidden() error {
 	raw := orig_termios
 
-	raw.Iflag &= ^(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
-	raw.Oflag &= ^(OPOST)
-	raw.Cflag |= (CS8)
-	raw.Lflag &= ^(ECHO | ICANON | IEXTEN | ISIG)
-
+	raw.Cflag &= ^(ECHO | ICANON | IEXTEN | ISIG)
 	raw.Cc[VMIN] = 1
 	raw.Cc[VTIME] = 0
 
@@ -170,7 +166,7 @@ func main() {
 
 	fmt.Printf("Passwd plz:")
 
-	if err = tty_raw(); err != nil {
+	if err = tty_hidden(); err != nil {
 		fmt.Println(err)
 		return
 	}
