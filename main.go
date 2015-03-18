@@ -9,8 +9,8 @@ import (
 
 // termios types
 type cc_t byte
-type speed_t uint
-type tcflag_t uint
+type speed_t uint32
+type tcflag_t uint32
 
 // termios constants
 const (
@@ -33,9 +33,9 @@ const (
 const NCCS = 32
 
 type termios struct {
-	c_iflag, c_oflag, c_cflag, c_lflag tcflag_t
+	Iflag, Oflag, c_cflag, c_lflag tcflag_t
 	c_line                             cc_t
-	c_cc                               [NCCS]cc_t
+	Cc                               [NCCS]cc_t
 	c_ispeed, c_ospeed                 speed_t
 }
 
@@ -46,11 +46,11 @@ const (
 )
 
 var (
-	orig_termios termios
+	orig_termios syscall.Termios
 	ttyfd        int = 0 // STDIN_FILENO
 )
 
-func getTermios(dst *termios) error {
+func getTermios(dst *syscall.Termios) error {
 	r1, _, errno := syscall.Syscall(SYS_IOCTL,
 		uintptr(ttyfd), uintptr(TCGETS),
 		uintptr(unsafe.Pointer(dst)))
@@ -66,7 +66,7 @@ func getTermios(dst *termios) error {
 	return nil
 }
 
-func setTermios(src *termios) error {
+func setTermios(src *syscall.Termios) error {
 	r1, _, errno := syscall.Syscall(SYS_IOCTL,
 		uintptr(ttyfd), uintptr(TCSETS),
 		uintptr(unsafe.Pointer(src)))
@@ -85,13 +85,13 @@ func setTermios(src *termios) error {
 func tty_raw() error {
 	raw := orig_termios
 
-	raw.c_iflag &= ^(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
-	raw.c_oflag &= ^(OPOST)
-	raw.c_cflag |= (CS8)
-	raw.c_lflag &= ^(ECHO | ICANON | IEXTEN | ISIG)
+	raw.Iflag &= ^(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
+	raw.Oflag &= ^(OPOST)
+	raw.Cflag |= (CS8)
+	raw.Lflag &= ^(ECHO | ICANON | IEXTEN | ISIG)
 
-	raw.c_cc[VMIN] = 1
-	raw.c_cc[VTIME] = 0
+	raw.Cc[VMIN] = 1
+	raw.Cc[VTIME] = 0
 
 	if err := setTermios(&raw); err != nil {
 		return err
