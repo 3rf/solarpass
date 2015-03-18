@@ -87,7 +87,7 @@ func setTermios(src *syscall.Termios) error {
 func tty_hidden() error {
 	raw := orig_termios
 
-	raw.Cflag &= ^(ECHO | ICANON | IEXTEN | ISIG)
+	raw.Cflag &= ^(syscall.ECHO | syscall.ECHONL | syscall.ICANON | syscall.IEXTEN | syscall.ISIG)
 	raw.Cc[VMIN] = 1
 	raw.Cc[VTIME] = 0
 
