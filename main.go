@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"syscall"
@@ -168,14 +169,22 @@ func main() {
 
 	fmt.Printf("%#v", orig_termios)
 
-	defer func() {
-		err = setTermios(&orig_termios)
-	}()
+	fmt.Printf("Passwd plz:")
 
 	if err = tty_raw(); err != nil {
 		return
 	}
-	if err = screenio(); err != nil {
-		return
+	// try reading a line
+	line, _, err := bufio.NewReader(os.Stdin).ReadLine()
+	if err != nil {
+		setTermios(&orig_termios)
+		fmt.Println("ERR:", err)
 	}
+	err = setTermios(&orig_termios)
+	if err != nil {
+		fmt.Println("ERR2:", err)
+	}
+	fmt.Println("GOT:", string(line))
+
+	return
 }
