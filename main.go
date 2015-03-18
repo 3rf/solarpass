@@ -172,6 +172,7 @@ func main() {
 	fmt.Printf("Passwd plz:")
 
 	if err = tty_raw(); err != nil {
+		fmt.Prinln(err)
 		return
 	}
 	// try reading a line
