@@ -149,6 +149,7 @@ func main() {
 		return
 	}
 	fmt.Println("GOT TERMIOS!")
+	defer setTermios(&orig_termios)
 
 	fmt.Printf("%#v\n\n", orig_termios)
 
