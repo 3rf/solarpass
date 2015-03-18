@@ -101,7 +101,6 @@ func tty_hidden() error {
 func screenio() (err error) {
 	var (
 		bytesread     int
-		errno         error
 		c_in, c_out   [1]byte
 		eightbitchars [256]byte
 	)
