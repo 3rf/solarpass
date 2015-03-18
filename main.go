@@ -14,19 +14,19 @@ type tcflag_t uint32
 
 // termios constants
 const (
-	BRKINT    = tcflag_t(0000002)
-	ICRNL     = tcflag_t(0000400)
-	INPCK     = tcflag_t(0000020)
-	ISTRIP    = tcflag_t(0000040)
-	IXON      = tcflag_t(0002000)
-	OPOST     = tcflag_t(0000001)
-	CS8       = tcflag_t(0000060)
-	ECHO      = tcflag_t(0000010)
-	ICANON    = tcflag_t(0000002)
-	IEXTEN    = tcflag_t(0100000)
-	ISIG      = tcflag_t(0000001)
-	VTIME     = tcflag_t(5)
-	VMIN      = tcflag_t(6)
+	BRKINT    = uint32(0000002)
+	ICRNL     = uint32(0000400)
+	INPCK     = uint32(0000020)
+	ISTRIP    = uint32(0000040)
+	IXON      = uint32(0002000)
+	OPOST     = uint32(0000001)
+	CS8       = uint32(0000060)
+	ECHO      = uint32(0000010)
+	ICANON    = uint32(0000002)
+	IEXTEN    = uint32(0100000)
+	ISIG      = uint32(0000001)
+	VTIME     = uint32(5)
+	VMIN      = uint32(6)
 	SYS_IOCTL = 54
 )
 
