@@ -85,17 +85,11 @@ func setTermios(src *syscall.Termios) error {
 }
 
 func tty_hidden() error {
-	raw := orig_termios
+	newState := orig_termios
+	newState.Iflag &^= syscall.ISTRIP | syscall.INLCR | syscall.ICRNL | syscall.IGNCR | syscall.IXON | syscall.IXOFF
+	newState.Lflag &^= syscall.ECHO | syscall.ICANON | syscall.ISIG
 
-	raw.Cflag &^= syscall.ECHO
-	raw.Cflag &^= syscall.ECHONL
-	raw.Cflag &^= syscall.ICANON
-	raw.Cflag &^= syscall.IEXTEN
-	raw.Cflag &^= syscall.ISIG
-	raw.Cc[VMIN] = 1
-	raw.Cc[VTIME] = 0
-
-	if err := setTermios(&raw); err != nil {
+	if err := setTermios(&newState); err != nil {
 		return err
 	}
 
@@ -118,8 +112,6 @@ func screenio() (err error) {
 		if bytesread < 0 {
 			return fmt.Errorf("read error")
 		}
-
-		fmt.Println("GOTCHAR", c_in)
 
 		if bytesread == 0 {
 			c_out[0] = 'T'
