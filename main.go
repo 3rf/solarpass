@@ -3,6 +3,7 @@ package main
 import (
 	//	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"syscall"
 	"unsafe"
@@ -15,35 +16,13 @@ type tcflag_t uint32
 
 // termios constants
 const (
-	BRKINT    = uint32(0000002)
-	ICRNL     = uint32(0000400)
-	INPCK     = uint32(0000020)
-	ISTRIP    = uint32(0000040)
-	IXON      = uint32(0002000)
-	OPOST     = uint32(0000001)
-	CS8       = uint32(0000060)
-	ECHO      = uint32(0000010)
-	ICANON    = uint32(0000002)
-	IEXTEN    = uint32(0100000)
-	ISIG      = uint32(0000001)
-	VTIME     = uint32(5)
-	VMIN      = uint32(6)
 	SYS_IOCTL = 54
 )
 
-const NCCS = 32
-
-type termios struct {
-	Iflag, Oflag, c_cflag, c_lflag tcflag_t
-	c_line                         cc_t
-	Cc                             [NCCS]cc_t
-	c_ispeed, c_ospeed             speed_t
-}
-
 // ioctl constants
 const (
-	TCGETS = 0x5401
-	TCSETS = 0x5402
+	TCGETS = 21517
+	TCSETS = 21518
 )
 
 var (
@@ -84,16 +63,38 @@ func setTermios(src *syscall.Termios) error {
 	return nil
 }
 
-func tty_hidden() error {
+func tty_hidden() ([]byte, error) {
 	newState := orig_termios
 	newState.Lflag &^= syscall.ECHO
 	newState.Lflag |= syscall.ICANON | syscall.ISIG
 	newState.Iflag |= syscall.ICRNL
 	if err := setTermios(&newState); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	var buf [16]byte
+	var ret []byte
+	for {
+		n, err := syscall.Read(ttyfd, buf[:])
+		if err != nil {
+			return nil, err
+		}
+		if n == 0 {
+			if len(ret) == 0 {
+				return nil, io.EOF
+			}
+			break
+		}
+		if buf[n-1] == '\n' {
+			n--
+		}
+		ret = append(ret, buf[:n]...)
+		if n < len(buf) {
+			break
+		}
+	}
+
+	return ret, nil
 }
 
 func screenio() (err error) {
@@ -147,27 +148,19 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("GOT TERMIOS!")
 
-	fmt.Printf("%#v", orig_termios)
+	fmt.Printf("%#v\n\n", orig_termios)
 
 	fmt.Printf("Passwd plz:")
 
-	if err = tty_hidden(); err != nil {
+	read, err := tty_hidden()
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	// try reading a line
-	screenio()
-	/*line, _, err := bufio.NewReader(os.Stdin).ReadLine()
-	if err != nil {
-		setTermios(&orig_termios)
-		fmt.Println("ERR:", err)
-	}
-	err = setTermios(&orig_termios)
-	if err != nil {
-		fmt.Println("ERR2:", err)
-	}
-	fmt.Println("GOT:", string(line))*/
+
+	fmt.Println("GOT:", string(read))
 
 	return
 }
