@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+//	"bufio"
 	"fmt"
 	"os"
 	"syscall"
@@ -130,20 +130,15 @@ func screenio() (err error) {
 			case 'q':
 				return nil
 			case 'z':
-				_, errno = syscall.Write(ttyfd, []byte{'Z'})
-				if err = os.NewSyscallError("SYS_WRITE", fmt.Errorf("%v", errno)); err != nil {
-					return nil
-				}
-			case 'u':
-				_, errno = syscall.Write(ttyfd, up)
-				if err = os.NewSyscallError("SYS_WRITE", fmt.Errorf("%v", errno)); err != nil {
-					return nil
+				_, err = syscall.Write(ttyfd, []byte{'Z'})
+				if err != nil {
+					return err
 				}
 			default:
 				c_out[0] = '*'
-				_, errno = syscall.Write(ttyfd, c_out[0:])
-				if err = os.NewSyscallError("SYS_WRITE", fmt.Errorf("%v", errno)); err != nil {
-					return nil
+				_, err = syscall.Write(ttyfd, c_out[0:])
+				if err != nil {
+					return err
 				}
 			}
 		}
@@ -171,7 +166,8 @@ func main() {
 		return
 	}
 	// try reading a line
-	line, _, err := bufio.NewReader(os.Stdin).ReadLine()
+	screenio()
+	/*line, _, err := bufio.NewReader(os.Stdin).ReadLine()
 	if err != nil {
 		setTermios(&orig_termios)
 		fmt.Println("ERR:", err)
@@ -180,7 +176,7 @@ func main() {
 	if err != nil {
 		fmt.Println("ERR2:", err)
 	}
-	fmt.Println("GOT:", string(line))
+	fmt.Println("GOT:", string(line))*/
 
 	return
 }
